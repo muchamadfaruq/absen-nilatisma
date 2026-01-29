@@ -1,4 +1,4 @@
-// URL API Google Apps Script Anda yang sudah di-deploy
+// Ganti dengan URL API Google Apps Script Anda yang sudah di-deploy
 const API_URL = 'https://script.google.com/macros/s/AKfycbx3JeBVAWx44odePj1tWXnbo7_SwSTKD-MCb3DGquSTQx-9sHHlFLIAkUn8f9RBh9eU/exec'; 
 
 // --- Variabel DOM ---
@@ -48,7 +48,7 @@ function loadDashboard() {
     }
 }
 
-// --- Logika Login ---
+// --- Logika Login (MENGGUNAKAN GET) ---
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -59,21 +59,20 @@ loginForm.addEventListener('submit', async (e) => {
     loginButton.disabled = true;
     loginButton.textContent = 'Memproses...';
     messageDiv.textContent = ''; 
+    
+    // Gunakan URL Parameters untuk login (Metode GET)
+    const url = `${API_URL}?action=login&nip=${nipInput}&password=${passwordInput}`;
 
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
+        const response = await fetch(url, {
+            method: 'GET', 
             mode: 'cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'login',
-                nip: nipInput,
-                password: passwordInput,
-            }),
         });
-
-        const result = await response.json();
         
+        // Response diproses sebagai TEXT karena CORS header
+        const text = await response.text(); 
+        const result = JSON.parse(text); 
+
         if (result.success) {
             displayMessage(messageDiv, result.message, true);
             saveUserData(result.data);
@@ -91,7 +90,7 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
-// --- Logika Absensi ---
+// --- Logika Absensi (MENGGUNAKAN POST) ---
 
 absenForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -120,7 +119,9 @@ absenForm.addEventListener('submit', async (e) => {
             }),
         });
 
-        const result = await response.json();
+        // Response GAS diproses sebagai TEXT karena CORS header
+        const text = await response.text(); 
+        const result = JSON.parse(text);
         
         displayMessage(absenMessageDiv, result.message, result.success);
 
@@ -142,8 +143,5 @@ function logout() {
     setTimeout(loadDashboard, 1000); 
 }
 
-// Agar fungsi logout bisa dipanggil dari HTML
 window.logout = logout; 
-
-// Cek status login saat halaman dimuat
 document.addEventListener('DOMContentLoaded', loadDashboard);
